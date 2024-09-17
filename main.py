@@ -1,35 +1,71 @@
-# -*- coding: utf-8 -*-
+# -- coding: utf-8 --
 """
-Created on Mon Sep 16 21:59:19 2024
+Created on Tue Sep 17 11:23:16 2024
 
-@author: Gunnar
+@author: fuchsg1
 """
 
-import analysis
+
 import pandas as pd
-import os
+import data_retreival as dr
+import correlation_calculation as cc
+import yfinance as yf
+
+# dr.data_retreival_routine( period = "max", interval = "1d" )
+# dr.get_commodities_csv()
+# dr.get_sp500_csv()
 
 
-def main( ):   
-    
-    fetch_data = False
-    
-    os.makedirs('charts', exist_ok=True)
-    
-    if fetch_data:
-        url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
-        tables = pd.read_html(url)
-        sp500_table = tables[0]
-        tickers = sp500_table['Symbol'].tolist()
-        period= '10y'    
-        interval = '1d'  
-        data = analysis.analyze_tickers(tickers = tickers, save_csv = True, period = period, interval = interval, analysis_type = "d2d", plot_ticker = False )
-    else:
-        data = analysis.load_csv( "data/return_d.csv" )
-    
-    correlation_matrix = analysis.correlation_investigation( dataframe = data )
-    
-    return correlation_matrix, data
 
-if __name__ == "__main__":
-    correlation_matrix, data = main( )  
+sp500_filepath = "data/collection/returns_1d_max_501_tickers_2024-09-17_18-07-20.csv"
+sp500_df = dr.load_data( filepath = sp500_filepath )
+
+start_date = pd.to_datetime("2023-09-11 00:00:00")
+end_date = pd.to_datetime("2024-09-15 00:00:00")
+
+sp500_trimmed_df = dr.clean_data( data_df = sp500_df, start_date = start_date, end_date = end_date, zero_threshold = 0.1 )
+
+# sp500_corr_lag = cc.compute_all_lagged_correlations( df = sp500_trimmed_df, lag = 1 )
+
+
+sp500_tickers = dr.load_ticker_data( "data/ticker_collection/sp500.csv" )
+commodity_tickers = dr.load_ticker_data( "data/ticker_collection/commodities.csv" )
+smi_tickers = dr.load_ticker_data( "data/ticker_collection/smi.csv" )
+
+urn_df = dr.update_ticker_file( "data/ticker/backup/URN.csv", period = "max", interval = "1d", ticker = "URN" )
+
+# milk = yf.download( "SIL=F", period = "1y", interval = "1d" )
+
+
+
+
+
+
+
+
+
+
+
+# lag = 1
+
+# lagged_corr_matrix = compute_all_lagged_correlations(data, lag=lag)
+
+# lagged_corr_flat = lagged_corr_matrix.unstack().dropna()
+# threshold = 0.2  
+
+# significant_pairs = lagged_corr_flat[lagged_corr_flat.abs() > threshold] # Impact of index 1 lagging by lag days on index 2
+# significant_pairs_sorted = significant_pairs.sort_values(ascending=False)
+
+
+# plt.figure(figsize=(14, 14))
+# sns.heatmap(lagged_corr_matrix.astype(float), cmap='coolwarm', center=0, annot=False)
+# plt.title(f'Lagged Correlation Matrix at Lag {lag} Days')
+# plt.xlabel('Stocks')
+# plt.ylabel('Stocks')
+# plt.show()
+
+
+
+# high_corr_pairs = high_corr_pairs.stack().sort_values( )
+
+# high_corr_pairs = high_corr_pairs[high_corr_pairs > 0.8]
