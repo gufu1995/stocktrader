@@ -11,7 +11,7 @@ from os.path import isfile, join
 import pandas as pd
 import numpy as np
 
-mypath = "csv/input/"
+mypath = "data/ticker/backup/"
 files = [ f for f in listdir(mypath) if isfile(join(mypath, f))]
 
 def convert_to_float(val):
@@ -24,6 +24,10 @@ for file in files:
     
     Ticker = file.split( "_" )[ 0 ]
     Format = file.split( "_")[ 1 ].split( "." )[ 0 ]
+    
+    if Ticker != "NICKEL":
+        if Format != "D":
+            continue
     
     
     # print( file )
@@ -53,6 +57,6 @@ for file in files:
     data = data.astype( np.float32 )
     data[ "returns" ] = data[ 'Close' ].pct_change() * 100
     
-    filepath = f"csv/output/{Ticker}_{Format}.csv"
+    filepath = f"data/ticker/{Ticker}_{Format}.csv"
     
     data.to_csv( filepath )
