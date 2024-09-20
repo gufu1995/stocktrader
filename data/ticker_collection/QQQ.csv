@@ -1,104 +1,104 @@
-﻿Ticker;Description;Sector
-AAPL;Apple Inc;Technology
-MSFT;Microsoft Corp;Technology
-NVDA;NVIDIA Corp;Technology
-AVGO;Broadcom Inc;Technology
-AMZN;Amazon.com Inc;Consumer Discretionary
-META;Meta Platforms Inc;Communication Services
-TSLA;Tesla Inc;Consumer Discretionary
-COST;Costco Wholesale Corp;Consumer Staples
-GOOGL;Alphabet Inc;Communication Services
-GOOG;Alphabet Inc;Communication Services
-NFLX;Netflix Inc;Communication Services
-AMD;Advanced Micro Devices Inc;Technology
-PEP;PepsiCo Inc;Consumer Staples
-ADBE;Adobe Inc;Technology
-TMUS;T-Mobile US Inc;Communication Services
-LIN;Linde PLC;Materials
-CSCO;Cisco Systems Inc;Technology
-QCOM;QUALCOMM Inc;Technology
-INTU;Intuit Inc;Technology
-TXN;Texas Instruments Inc;Technology
-AMGN;Amgen Inc;Health Care
-ISRG;Intuitive Surgical Inc;Health Care
-AMAT;Applied Materials Inc;Technology
-CMCSA;Comcast Corp;Communication Services
-BKNG;Booking Holdings Inc;Consumer Discretionary
-HON;Honeywell International Inc;Industrials
-VRTX;Vertex Pharmaceuticals Inc;Health Care
-REGN;Regeneron Pharmaceuticals Inc;Health Care
-ADP;Automatic Data Processing Inc;Technology
-PANW;Palo Alto Networks Inc;Technology
-ADI;Analog Devices Inc;Technology
-SBUX;Starbucks Corp;Consumer Discretionary
-MELI;MercadoLibre Inc;Consumer Discretionary
-GILD;Gilead Sciences Inc;Health Care
-KLAC;KLA Corp;Technology
-MU;Micron Technology Inc;Technology
-MDLZ;Mondelez International Inc;Consumer Staples
-LRCX;Lam Research Corp;Technology
-CTAS;Cintas Corp;Industrials
-INTC;Intel Corp;Technology
-SNPS;Synopsys Inc;Technology
-ASML;ASML Holding NV;Technology
-PYPL;PayPal Holdings Inc;Technology
-CDNS;Cadence Design Systems Inc;Technology
-ORLY;O'Reilly Automotive Inc;Consumer Discretionary
-MAR;Marriott International Inc/MD;Consumer Discretionary
-CSX;CSX Corp;Industrials
-MRVL;Marvell Technology Inc;Technology
-PDD;PDD Holdings Inc ADR;Consumer Discretionary
-CEG;Constellation Energy Corp;Utilities
-CRWD;Crowdstrike Holdings Inc;Technology
-ROP;Roper Technologies Inc;Industrials
-NXPI;NXP Semiconductors NV;Technology
-FTNT;Fortinet Inc;Technology
-ADSK;Autodesk Inc;Technology
-AEP;American Electric Power Co Inc;Utilities
-WDAY;Workday Inc;Technology
-MNST;Monster Beverage Corp;Consumer Staples
-ROST;Ross Stores Inc;Consumer Discretionary
-ABNB;Airbnb Inc;Consumer Discretionary
-KDP;Keurig Dr Pepper Inc;Consumer Staples
-DASH;DoorDash Inc;Consumer Discretionary
-PCAR;PACCAR Inc;Industrials
-CHTR;Charter Communications Inc;Communication Services
-PAYX;Paychex Inc;Industrials
-CPRT;Copart Inc;Consumer Discretionary
-TTD;Trade Desk Inc/The;Communication Services
-AZN;AstraZeneca PLC ADR;Health Care
-KHC;Kraft Heinz Co/The;Consumer Staples
-ODFL;Old Dominion Freight Line Inc;Industrials
-MCHP;Microchip Technology Inc;Technology
-IDXX;IDEXX Laboratories Inc;Health Care
-EXC;Exelon Corp;Utilities
-FAST;Fastenal Co;Industrials
-GEHC;GE HealthCare Technologies Inc;Health Care
-EA;Electronic Arts Inc;Communication Services
-CTSH;Cognizant Technology Solutions Corp;Technology
-VRSK;Verisk Analytics Inc;Industrials
-CCEP;Coca-Cola Europacific Partners PLC;Consumer Staples
-XEL;Xcel Energy Inc;Utilities
-DDOG;Datadog Inc;Technology
-BKR;Baker Hughes Co;Energy
-CSGP;CoStar Group Inc;Real Estate
-LULU;Lululemon Athletica Inc;Consumer Discretionary
-ON;ON Semiconductor Corp;Technology
-FANG;Diamondback Energy Inc;Energy
-CDW;CDW Corp/DE;Technology
-BIIB;Biogen Inc;Health Care
-ANSS;ANSYS Inc;Technology
-DXCM;Dexcom Inc;Health Care
-SMCI;Super Micro Computer Inc;Technology
-MRNA;Moderna Inc;Health Care
-TTWO;Take-Two Interactive Software Inc;Communication Services
-TEAM;Atlassian Corp;Technology
-ZS;Zscaler Inc;Technology
-GFS;GLOBALFOUNDRIES Inc;Technology
-MDB;MongoDB Inc;Technology
-WBD;Warner Bros Discovery Inc;Communication Services
-ILMN;Illumina Inc;Health Care
-ARM;ARM Holdings PLC ADR;Technology
-DLTR;Dollar Tree Inc;Consumer Discretionary
-QQQ;Nasdaq Index;Index
-;;
+﻿Ticker,Description,Sector
+AAPL,Apple Inc,Technology
+MSFT,Microsoft Corp,Technology
+NVDA,NVIDIA Corp,Technology
+AVGO,Broadcom Inc,Technology
+AMZN,Amazon.com Inc,Consumer Discretionary
+META,Meta Platforms Inc,Communication Services
+TSLA,Tesla Inc,Consumer Discretionary
+COST,Costco Wholesale Corp,Consumer Staples
+GOOGL,Alphabet Inc,Communication Services
+GOOG,Alphabet Inc,Communication Services
+NFLX,Netflix Inc,Communication Services
+AMD,Advanced Micro Devices Inc,Technology
+PEP,PepsiCo Inc,Consumer Staples
+ADBE,Adobe Inc,Technology
+TMUS,T-Mobile US Inc,Communication Services
+LIN,Linde PLC,Materials
+CSCO,Cisco Systems Inc,Technology
+QCOM,QUALCOMM Inc,Technology
+INTU,Intuit Inc,Technology
+TXN,Texas Instruments Inc,Technology
+AMGN,Amgen Inc,Health Care
+ISRG,Intuitive Surgical Inc,Health Care
+AMAT,Applied Materials Inc,Technology
+CMCSA,Comcast Corp,Communication Services
+BKNG,Booking Holdings Inc,Consumer Discretionary
+HON,Honeywell International Inc,Industrials
+VRTX,Vertex Pharmaceuticals Inc,Health Care
+REGN,Regeneron Pharmaceuticals Inc,Health Care
+ADP,Automatic Data Processing Inc,Technology
+PANW,Palo Alto Networks Inc,Technology
+ADI,Analog Devices Inc,Technology
+SBUX,Starbucks Corp,Consumer Discretionary
+MELI,MercadoLibre Inc,Consumer Discretionary
+GILD,Gilead Sciences Inc,Health Care
+KLAC,KLA Corp,Technology
+MU,Micron Technology Inc,Technology
+MDLZ,Mondelez International Inc,Consumer Staples
+LRCX,Lam Research Corp,Technology
+CTAS,Cintas Corp,Industrials
+INTC,Intel Corp,Technology
+SNPS,Synopsys Inc,Technology
+ASML,ASML Holding NV,Technology
+PYPL,PayPal Holdings Inc,Technology
+CDNS,Cadence Design Systems Inc,Technology
+ORLY,O'Reilly Automotive Inc,Consumer Discretionary
+MAR,Marriott International Inc/MD,Consumer Discretionary
+CSX,CSX Corp,Industrials
+MRVL,Marvell Technology Inc,Technology
+PDD,PDD Holdings Inc ADR,Consumer Discretionary
+CEG,Constellation Energy Corp,Utilities
+CRWD,Crowdstrike Holdings Inc,Technology
+ROP,Roper Technologies Inc,Industrials
+NXPI,NXP Semiconductors NV,Technology
+FTNT,Fortinet Inc,Technology
+ADSK,Autodesk Inc,Technology
+AEP,American Electric Power Co Inc,Utilities
+WDAY,Workday Inc,Technology
+MNST,Monster Beverage Corp,Consumer Staples
+ROST,Ross Stores Inc,Consumer Discretionary
+ABNB,Airbnb Inc,Consumer Discretionary
+KDP,Keurig Dr Pepper Inc,Consumer Staples
+DASH,DoorDash Inc,Consumer Discretionary
+PCAR,PACCAR Inc,Industrials
+CHTR,Charter Communications Inc,Communication Services
+PAYX,Paychex Inc,Industrials
+CPRT,Copart Inc,Consumer Discretionary
+TTD,Trade Desk Inc/The,Communication Services
+AZN,AstraZeneca PLC ADR,Health Care
+KHC,Kraft Heinz Co/The,Consumer Staples
+ODFL,Old Dominion Freight Line Inc,Industrials
+MCHP,Microchip Technology Inc,Technology
+IDXX,IDEXX Laboratories Inc,Health Care
+EXC,Exelon Corp,Utilities
+FAST,Fastenal Co,Industrials
+GEHC,GE HealthCare Technologies Inc,Health Care
+EA,Electronic Arts Inc,Communication Services
+CTSH,Cognizant Technology Solutions Corp,Technology
+VRSK,Verisk Analytics Inc,Industrials
+CCEP,Coca-Cola Europacific Partners PLC,Consumer Staples
+XEL,Xcel Energy Inc,Utilities
+DDOG,Datadog Inc,Technology
+BKR,Baker Hughes Co,Energy
+CSGP,CoStar Group Inc,Real Estate
+LULU,Lululemon Athletica Inc,Consumer Discretionary
+ON,ON Semiconductor Corp,Technology
+FANG,Diamondback Energy Inc,Energy
+CDW,CDW Corp/DE,Technology
+BIIB,Biogen Inc,Health Care
+ANSS,ANSYS Inc,Technology
+DXCM,Dexcom Inc,Health Care
+SMCI,Super Micro Computer Inc,Technology
+MRNA,Moderna Inc,Health Care
+TTWO,Take-Two Interactive Software Inc,Communication Services
+TEAM,Atlassian Corp,Technology
+ZS,Zscaler Inc,Technology
+GFS,GLOBALFOUNDRIES Inc,Technology
+MDB,MongoDB Inc,Technology
+WBD,Warner Bros Discovery Inc,Communication Services
+ILMN,Illumina Inc,Health Care
+ARM,ARM Holdings PLC ADR,Technology
+DLTR,Dollar Tree Inc,Consumer Discretionary
+QQQ,Nasdaq Index,Index
+,,

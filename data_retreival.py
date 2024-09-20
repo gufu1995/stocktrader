@@ -6,7 +6,7 @@ Created on Tue Sep 17 17:45:02 2024
 """
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
+import datetime 
 import numpy as np
 import requests
 import re
@@ -80,38 +80,134 @@ def META_extract_ticker_description(symbol_str):
     return pd.Series({'Ticker': ticker, 'Description': description})
 
 
-def DL_fetch_Yahoo_ticker_data( tickers, period = "1y", interval = "1d" ):
+def META_get_valid_trading_days( date_format, exchanges, start_date, end_date ):
     
+    if date_format == "D":
+        if exchanges == "None":
+            valid_trading_dates = pd.date_range(start=start_date, end=end_date, freq="B" )
+        else:
+            if isinstance(exchanges, str):
+                exchanges = [ exchanges ]
+
+            for i, exchange in enumerate( exchanges ): 
+                stock_exchange = mcal.get_calendar( exchange )
+                valid_trading_dates_exchange = stock_exchange.valid_days(start_date=start_date, end_date=end_date)
+                valid_trading_dates_exchange = pd.to_datetime( valid_trading_dates_exchange ).tz_localize(None)
+                if i == 0:
+                    valid_trading_dates = valid_trading_dates_exchange
+                else:
+                    valid_trading_dates = valid_trading_dates.union( valid_trading_dates_exchange )
+        
+    else:       
+        valid_trading_dates = pd.date_range(start=start_date, end=end_date, freq=date_format )
+        
+    return valid_trading_dates
+
+
+def META_strip_non_trading_days( data_series, valid_trading_dates ):
+    # if there are too many trading days in data, take the dates and shift them to the next trading day
+    # then delete the none trading days
+    excessive_dates = data_series.index.difference( pd.Index( valid_trading_dates ) )
+    missing_dates = pd.Index( valid_trading_dates ).difference( data_series.index )
+    
+    for excessive_date in excessive_dates:
+        next_valid_date = valid_trading_dates[valid_trading_dates > excessive_date].min()
+        if pd.notna(next_valid_date):
+            
+            if next_valid_date in data_series.index:
+            # Add the value from the non-trading day to the next valid day
+                data_series.loc[next_valid_date] += data_series.loc[excessive_date]
+            else:
+            # If the next valid day has no value, assign the value directly
+                data_series[next_valid_date] = data_series.loc[excessive_date]
+                missing_dates = missing_dates.drop( next_valid_date )
+            
+            # data_df.loc[next_valid_date] = data_df.loc[next_valid_date].fillna(0) + data_df.loc[excessive_date]
+    data_series = data_series.drop(index=excessive_dates)
+    
+    return data_series, missing_dates
+
+
+def META_get_ticker_df( folder_path ):
+    
+    sp500df = DL_GATHER_sp500_tickers( folderpath = folder_path, safe_data = False )
+    commodities_df = DL_GATHER_commodities_tickers( folderpath = folder_path, safe_data = False )
+    qqq_df = LOCAL_load_csv_data( folder_path + "QQQ.csv" )
+    smi_df = LOCAL_load_csv_data( folder_path + "smi.csv" )
+    dax_df = LOCAL_load_csv_data( folder_path + "dax.csv" )
+
+    ticker_df = [ sp500df, commodities_df, qqq_df, smi_df, dax_df ]
+    ticker_df = DATA_COLLECT_ticker_list( ticker_df = ticker_df )
+    
+    return ticker_df
+
+
+def DL_fetch_single_ticker_data( ticker, period, interval ):
+    
+    print(f"Fetching data for {ticker}...")
+    try:
+
+        ticker_df = yf.download( ticker, period = period, interval = interval )
+        
+        ticker_df.index.name = 'Date'
+
+        ticker_df[ 'returns' ] = ticker_df[ 'Close' ].pct_change() * 100
+        
+        return ticker_df
+
+    except Exception as e:
+        print( f"An error occurred for {ticker}: {e}" )
+        return None
+        
+
+def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period = "1y", 
+                               interval = "1d", folder = "data/ticker/stocks/", interpolate = "linear" ):
+    
+    # if len(end_date)==0:
+    #     end_date = pd.to_datetime( datetime.date.today( ) )
+    #     if "y" in period:
+    #         start_date = datetime.date.today() - datetime.timedelta( days = 365 + int( period[ : -1 ] ) )
+    #     elif "d" in period:
+    #         start_date = datetime.date.today() - datetime.timedelta( days = int( period[ : -1 ] ) )
+    #     elif "w" in period:
+    #         start_date = datetime.date.today() - datetime.timedelta( weeks = int( period[ : -1 ] ) )
+    #     else:
+    #         print( "Do not recognize the period" )
+    #     start_date = pd.to_datetime( start_date )
+            
     collection_df = pd.DataFrame( )
-    datetime_string = f"{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+    datetime_string = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     
+    valid_trading_dates = META_get_valid_trading_days( date_format = interval[ -1 ].upper(), exchanges = exchanges, 
+                                                     start_date = start_date, end_date = end_date )
+
     for ticker in tickers:
+
+        ticker_df = DL_fetch_single_ticker_data( ticker = ticker, period = period, interval = interval )
+        # save ticker data to csv in ticker folder
+        csv_ticker_filepath = folder + f"{ticker}_{period}_{interval}.csv"
+        LOCAL_safe_to_csv(data = ticker_df, filepath = csv_ticker_filepath )
         
-        print(f"Fetching data for {ticker}...")
-        try:
-            # Download historical data
-            data_df = yf.download( ticker, period = period, interval = interval )
-            
-            if data_df.empty:
-                print(f"No data found for {ticker}. Skipping.")
-                continue
-            
-            data_df.index.name = 'Date'
-            
-            # calculate return for timeframe in percent
-            key = 'returns_d'
-            data_df[ key ] = data_df[ 'Close' ].pct_change() * 100
-            
-            # save ticker data to csv in ticker folder
-            csv_ticker_name = f"data/ticker/{ticker}_{period}_{interval}.csv"
-            data_df.to_csv(csv_ticker_name)
-            print(f"Saved data with day over day returns for {ticker} to {csv_ticker_name}")
-            
-            collection_df = pd.concat( [ collection_df, data_df[ key ] ], axis = 1 )
-            collection_df = collection_df.rename({ key: ticker }, axis = 'columns' )
+        if ticker_df.empty:
+            print(f"No data found for {ticker}. Skipping.")
+            continue
         
-        except Exception as e:
-            print(f"An error occurred for {ticker}: {e}")
+        ticker_series = ticker_df[ "returns" ]
+        ticker_df_time_filtered = DATA_FILTER_complete_csv_data_time( data_series = ticker_series, start_date = start_date, end_date = end_date )
+        
+        missing_dates, returns_time_adjusted = DATA_ANALYZE_data_integrity( data_series = ticker_df_time_filtered, 
+                                                                 exchanges = exchanges, start_date = start_date, valid_trading_dates = valid_trading_dates,
+                                                                 end_date = end_date, calculate_trading_dates = False  )
+        
+        returns_timecomplete_series = DATA_MANIPULATE_fill_missing_data( data_series = returns_time_adjusted, fill = True,
+                                            missing_dates = missing_dates, interpolate = interpolate )
+        
+        
+        
+
+        collection_df = pd.concat( [ collection_df, returns_timecomplete_series ], axis = 1 )
+        collection_df = collection_df.rename({ 'returns': ticker }, axis = 'columns' )
+        
             
     collection_df.index.names = [ "Date" ] 
     collection_df = collection_df.astype( np.float32 )
@@ -119,16 +215,16 @@ def DL_fetch_Yahoo_ticker_data( tickers, period = "1y", interval = "1d" ):
     collection_df = collection_df.dropna(axis=0, how='all')
     
     if len( collection_df ) != 0:
-        csv_filename = f"data/collection/returns_{interval}_{period}_{len(collection_df.columns)}_tickers_{datetime_string}.csv"
+        csv_filename = folder +  f"returns_{interval}_{period}_{len(collection_df.columns)}_tickers_{datetime_string}.csv"
         collection_df.to_csv(csv_filename)
         print(f"Saved data with day over day returns for {len(collection_df)}_tickers to {csv_filename}")
     else: 
         print( "Collected List is empty" )
         
-    return 
+    return collection_df
 
 
-def DL_gather_sp500_tickers( ):
+def DL_GATHER_sp500_tickers( folderpath = "data/ticker_collection/", safe_data = False ):
 
     url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
     tables = pd.read_html(url)
@@ -137,14 +233,15 @@ def DL_gather_sp500_tickers( ):
     sp500_df = sp500_df.rename( columns = { "Security" : "Description", "GICS Sector" : "Sector" } )
     sp500_df = sp500_df.loc[ :, [ "Description", "Sector" ] ]
     sp500_df.index.name = "Ticker"
-    csv_name = "data/ticker_collection/sp500.csv"
-    sp500_df.to_csv(csv_name)
-    print(f"Saved ticker list for sp500 to {csv_name}")
+    csv_name = folderpath + "sp500.csv"
+    if safe_data:
+        sp500_df.to_csv(csv_name)
+        print(f"Saved ticker list for sp500 to {csv_name}")
     
-    return 
+    return sp500_df
 
 
-def DL_GATHER_commodities_tickers( ):
+def DL_GATHER_commodities_tickers( folderpath = "data/ticker_collection/", safe_data = False ):
     url = 'https://finance.yahoo.com/markets/commodities/'
     headers = {'User-Agent': 'Mozilla/5.0'}
     response = requests.get(url, headers=headers)
@@ -159,26 +256,32 @@ def DL_GATHER_commodities_tickers( ):
     commodities_df.index.name = "Ticker"
     
     csv_name = "data/ticker_collection/commodities.csv"
-    commodities_df.to_csv(csv_name)
-    print(f"Saved ticker list for commodities to {csv_name}")
+    if safe_data:
+        commodities_df.to_csv(csv_name)
+        print(f"Saved ticker list for commodities to {csv_name}")
     
-    return 
+    return commodities_df
 
 
 def LOCAL_load_csv_data( filepath ):
     
     data_df = pd.read_csv( filepath )
     
+    if "Ticker" in data_df.columns:
+        data_df = data_df.set_index( "Ticker" )
+        data_df = data_df.dropna(axis=0, how='all')
+        return data_df
+    
     if 'Date' in data_df.columns:
         data_df = data_df.set_index( 'Date' )
         
+    elif "Datum" in data_df.columns:
+        data_df = data_df.set_index( 'Datum' )
+        
     data_df = data_df.astype( np.float32 )
-    
     data_df.index = pd.to_datetime(data_df.index )
-    data_df = data_df.dropna(axis=0, how='all')
-    
     return data_df
-
+        
 
 def LOCAL_gather_folder_tickers( folderpath, desired_date_format ):
     file_collection = [ ]
@@ -195,6 +298,14 @@ def LOCAL_gather_folder_tickers( folderpath, desired_date_format ):
     except Exception as e:
         print( e )
         return None
+
+
+def LOCAL_safe_to_csv( data, filepath ):
+
+    data.to_csv(filepath)
+    print(f"Saved data list for commodities to {filepath}")
+    
+    return
 
 
 def DATA_EXTRACT_untouched_data_csv( data_df, ticker ):
@@ -256,50 +367,18 @@ def DATA_ANALYZE_get_date_format( data_series ):
         return "MS"
 
 
-def DATA_ANALYZE_data_integrity( data_series, exchanges, start_date, end_date ):
+def DATA_ANALYZE_data_integrity( data_series, exchanges, start_date, end_date, 
+                                calculate_trading_dates = True, valid_trading_dates = None ):
     
     date_format = DATA_ANALYZE_get_date_format( data_series = data_series )
-    
-    if date_format == "D":
-        if exchanges == "None":
-            valid_trading_dates = pd.date_range(start=start_date, end=end_date, freq="B" )
-        else:
-            if isinstance(exchanges, str):
-                exchanges = [ exchanges ]
 
-            for i, exchange in enumerate( exchanges ): 
-                stock_exchange = mcal.get_calendar( exchange )
-                valid_trading_dates_exchange = stock_exchange.valid_days(start_date=start_date, end_date=end_date)
-                valid_trading_dates_exchange = pd.to_datetime( valid_trading_dates_exchange ).tz_localize(None)
-                if i == 0:
-                    valid_trading_dates = valid_trading_dates_exchange
-                else:
-                    valid_trading_dates = valid_trading_dates.union( valid_trading_dates_exchange )
-        
-    else:       
-        valid_trading_dates = pd.date_range(start=start_date, end=end_date, freq=date_format )
-
+    if calculate_trading_dates:
+        valid_trading_dates = META_get_valid_trading_days( date_format = date_format, 
+                                                          exchanges = exchanges, start_date = start_date, 
+                                                          end_date = end_date )
     
-    
-    # if there are too many trading days in data, take the dates and shift them to the next trading day
-    # then delete the none trading days
-    excessive_dates = data_series.index.difference( pd.Index( valid_trading_dates ) )
-    missing_dates = pd.Index( valid_trading_dates ).difference( data_series.index )
-    
-    for excessive_date in excessive_dates:
-        next_valid_date = valid_trading_dates[valid_trading_dates > excessive_date].min()
-        if pd.notna(next_valid_date):
-            
-            if next_valid_date in data_series.index:
-            # Add the value from the non-trading day to the next valid day
-                data_series.loc[next_valid_date] += data_series.loc[excessive_date]
-            else:
-            # If the next valid day has no value, assign the value directly
-                data_series[next_valid_date] = data_series.loc[excessive_date]
-                missing_dates = missing_dates.drop( next_valid_date )
-            
-            # data_df.loc[next_valid_date] = data_df.loc[next_valid_date].fillna(0) + data_df.loc[excessive_date]
-    data_series = data_series.drop(index=excessive_dates)
+    data_series, missing_dates = META_strip_non_trading_days( data_series = data_series, 
+                                                             valid_trading_dates = valid_trading_dates )
 
     if missing_dates.empty:
         print("The data is complete.")
@@ -354,7 +433,7 @@ def DATA_COLLECT_local_data( folderpath, desired_date_format, start_date, end_da
                                                                   start_date = start_date, end_date = end_date )
         missing_dates, returns_time_adjusted = DATA_ANALYZE_data_integrity( data_series = returns_time_filtered, 
                                                                  exchanges = exchanges, start_date = start_date, 
-                                                                 end_date = end_date  )
+                                                                 end_date = end_date, calculate_trading_dates = True  )
         
         returns_timecomplete_series = DATA_MANIPULATE_fill_missing_data( data_series = returns_time_adjusted, fill = True,
                                             missing_dates = missing_dates, interpolate = interpolate )
@@ -364,3 +443,6 @@ def DATA_COLLECT_local_data( folderpath, desired_date_format, start_date, end_da
             returns_collection_df = pd.concat( [ returns_collection_df, returns_timecomplete_series.to_frame( ) ], axis = 1 )
         
     return returns_collection_df 
+
+def DATA_COLLECT_ticker_list( ticker_df ):
+    return pd.concat( ticker_df )
