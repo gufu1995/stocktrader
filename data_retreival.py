@@ -99,6 +99,8 @@ def META_get_valid_trading_days( date_format, exchanges, start_date, end_date ):
                     valid_trading_dates = valid_trading_dates.union( valid_trading_dates_exchange )
         
     else:       
+        if date_format == "MO":
+            date_format = "MS"
         valid_trading_dates = pd.date_range(start=start_date, end=end_date, freq=date_format )
         
     return valid_trading_dates
@@ -161,7 +163,8 @@ def DL_fetch_single_ticker_data( ticker, period, interval ):
         
 
 def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period = "1y", 
-                               interval = "1d", folder = "data/ticker/stocks/", interpolate = "linear" ):
+                               interval = "1d", folder = "data/ticker/stocks/", interpolate = "linear",
+                               fill_missing = True):
     
     # if len(end_date)==0:
     #     end_date = pd.to_datetime( datetime.date.today( ) )
@@ -178,7 +181,7 @@ def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period
     collection_df = pd.DataFrame( )
     datetime_string = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
     
-    valid_trading_dates = META_get_valid_trading_days( date_format = interval[ -1 ].upper(), exchanges = exchanges, 
+    valid_trading_dates = META_get_valid_trading_days( date_format = re.findall( r"[a-zA-Z]+", interval )[ 0 ].upper(), exchanges = exchanges, 
                                                      start_date = start_date, end_date = end_date )
 
     for ticker in tickers:
@@ -195,19 +198,22 @@ def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period
         ticker_series = ticker_df[ "returns" ]
         ticker_df_time_filtered = DATA_FILTER_complete_csv_data_time( data_series = ticker_series, start_date = start_date, end_date = end_date )
         
-        missing_dates, returns_time_adjusted = DATA_ANALYZE_data_integrity( data_series = ticker_df_time_filtered, 
-                                                                 exchanges = exchanges, start_date = start_date, valid_trading_dates = valid_trading_dates,
-                                                                 end_date = end_date, calculate_trading_dates = False  )
-        
-        returns_timecomplete_series = DATA_MANIPULATE_fill_missing_data( data_series = returns_time_adjusted, fill = True,
-                                            missing_dates = missing_dates, interpolate = interpolate )
-        
-        
-        
-
-        collection_df = pd.concat( [ collection_df, returns_timecomplete_series ], axis = 1 )
-        collection_df = collection_df.rename({ 'returns': ticker }, axis = 'columns' )
-        
+        try:
+            missing_dates, returns_time_adjusted = DATA_ANALYZE_data_integrity( data_series = ticker_df_time_filtered, 
+                                                                     exchanges = exchanges, start_date = start_date, valid_trading_dates = valid_trading_dates,
+                                                                     end_date = end_date, calculate_trading_dates = False  )
+            
+            returns_timecomplete_series = DATA_MANIPULATE_fill_missing_data( data_series = returns_time_adjusted, fill = fill_missing,
+                                                missing_dates = missing_dates, interpolate = interpolate )
+            
+            
+            
+    
+            collection_df = pd.concat( [ collection_df, returns_timecomplete_series ], axis = 1 )
+            collection_df = collection_df.rename({ 'returns': ticker }, axis = 'columns' )
+        except Exception as e:
+            print( e )
+            continue
             
     collection_df.index.names = [ "Date" ] 
     collection_df = collection_df.astype( np.float32 )
@@ -332,17 +338,21 @@ def DATA_FILTER_complete_csv_data_time( data_series, start_date, end_date ):
         print( "Start Date is equal to End Date - choose something else" )
         return None
     try:
-        if ( start_date > data_series.index[ 0 ] ) & ( end_date < data_series.index[ -1 ] ):
+        if ( start_date >= data_series.index[ 0 ] ) & ( end_date <= data_series.index[ -1 ] ):
         
-            data_series = data_series[ ( data_series.index > start_date ) & ( data_series.index < end_date ) ]
+            data_series = data_series[ ( data_series.index >= start_date ) & ( data_series.index <= end_date ) ]
             return data_series
-        elif ( start_date > data_series.index[ 0 ] ) & ( end_date > data_series.index[ -1 ] ):
+        elif ( start_date >= data_series.index[ 0 ] ) & ( end_date > data_series.index[ -1 ] ):
             print( f"End Date {end_date} out of Scope, taking last element: {data_series.index[ -1 ]} instead")
-            data_series = data_series[ ( data_series.index > start_date ) ]
+            data_series = data_series[ ( data_series.index >= start_date ) ]
+            return data_series 
+        elif ( start_date < data_series.index[ 0 ] ) & ( end_date <= data_series.index[ -1 ] ):
+            print( f"Start Date {start_date} out of Scope, taking first element: {data_series.index[ 0 ]} instead")
+            data_series = data_series[ ( data_series.index <= end_date ) ]
             return data_series 
         else:
             print( "Start or End Date out of scope" )
-            return None
+            return data_series
     except Exception as e:
         print( e )
         return None
@@ -393,16 +403,13 @@ def DATA_MANIPULATE_fill_missing_data( data_series, missing_dates, fill = True, 
     # interp values = 'linear', 'time', 'index', 'values', 'nearest', 'zero', 'slinear', 
     # 'quadratic', 'cubic', 'barycentric', 'krogh', 'spline', 'polynomial', 'from_derivatives', 
     #'piecewise_polynomial', 'pchip', 'akima', 'cubicspline'
-    
+    complete_series = data_series.reindex(data_series.index.union(missing_dates).sort_values())
     if fill:
-        complete_series = data_series.reindex(data_series.index.union(missing_dates).sort_values())
         complete_series = complete_series.interpolate(method=interpolate)
-            
+        complete_series = complete_series.fillna( 0 )
     else: 
         complete_series = data_series 
     
-    complete_series = complete_series.fillna( 0 )
-        
     return complete_series
     
 
@@ -442,6 +449,7 @@ def DATA_COLLECT_local_data( folderpath, desired_date_format, start_date, end_da
         else:
             returns_collection_df = pd.concat( [ returns_collection_df, returns_timecomplete_series.to_frame( ) ], axis = 1 )
         
+    returns_collection_df.index.name = "Date"
     return returns_collection_df 
 
 def DATA_COLLECT_ticker_list( ticker_df ):
