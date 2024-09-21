@@ -454,3 +454,48 @@ def DATA_COLLECT_local_data( folderpath, desired_date_format, start_date, end_da
 
 def DATA_COLLECT_ticker_list( ticker_df ):
     return pd.concat( ticker_df )
+
+
+def DATA_check_duplicate_column_names(df):
+    """
+    Check for duplicate column names in a DataFrame.
+
+    Parameters:
+    - df: pandas DataFrame to check.
+
+    Returns:
+    - duplicates: list of duplicate column names.
+    """
+    counts = df.columns.value_counts()
+    duplicates = counts[counts > 1].index.tolist()
+    return duplicates
+
+
+def DATA_merge_dataframes(dfs, threshold=1e-8):
+    """
+    Merge multiple DataFrames with datetime indexes and stock tickers as columns.
+
+    Parameters:
+    - dfs: list of pandas DataFrames to merge.
+    - threshold: float, maximum allowed difference to consider data as similar.
+
+    Returns:
+    - merged_df: pandas DataFrame after merging.
+    """
+    # Check for duplicate column names in each DataFrame and handle them
+    for idx, df in enumerate(dfs):
+        duplicates = DATA_check_duplicate_column_names(df)
+        if duplicates:
+            print(f"Duplicate column names found in DataFrame {idx}: {duplicates}")
+
+    # Start with the first DataFrame
+    merged_df = dfs[0].copy()
+    for df in dfs[1:]:
+        # Find common columns
+        common_cols = merged_df.columns.intersection(df.columns)
+        for col in common_cols:
+            df = df.drop(columns=[col])
+
+        # Merge the DataFrames
+        merged_df = pd.concat([merged_df, df], axis=1)
+    return merged_df
