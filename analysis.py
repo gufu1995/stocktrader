@@ -10,14 +10,70 @@ import mplfinance as mpf
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import data_retreival as dr
 
-def load_csv( filepath ):
-    data = pd.read_csv( filepath )
-    if 'Date' in data.columns:
-        data = data.set_index( 'Date' )
-    data = data.dropna(axis=1, how='all')
-    return data
+def PLOT_complete_data( ticker, data, safe, filepath ):
 
+    start_date = pd.to_datetime("2011-01-01 00:00:00")
+    end_date = pd.to_datetime("2024-08-01 00:00:00")
+    
+    data = dr.DATA_FILTER_complete_csv_data_time( data_series = data, 
+                                                 start_date = start_date, end_date = end_date )
+    df = data.copy()
+    df['MA20'] = df['Close'].rolling(window=20).mean()
+    df['MA50'] = df['Close'].rolling(window=50).mean()
+    df['MA200'] = df['Close'].rolling(window=200).mean()
+    df['STD20'] = df['Close'].rolling(window=20).std()
+    df['UpperBB'] = df['MA20'] + (df['STD20'] * 2)
+    df['LowerBB'] = df['MA20'] - (df['STD20'] * 2)
+    
+
+    # Plot Candlestick chart with Moving Averages and Bollinger Bands
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), dpi = 200,
+                                   gridspec_kw={'height_ratios': [3, 1]})
+
+    apd = [
+        mpf.make_addplot(df['UpperBB'], ax=ax1),
+        mpf.make_addplot(df['LowerBB'], ax=ax1),
+           ]
+    # Candlestick plot with Moving Averages and Bollinger Bands
+    mpf.plot(df, type='candle', style='yahoo', 
+             ax=ax1, volume=False, mav=(9, 20), addplot=apd)
+
+    ax1.set_title(f'{ticker} Stock Price with Moving Averages and Bollinger Bands')
+
+    # Plot daily returns
+    ax2.plot(df.index, df['returns'], label='Daily Returns', color='blue')
+    ax2.axhline(y=0, color='black', linestyle='--', linewidth=1)
+    ax2.set_title('Daily Returns')
+    ax2.legend(loc='best')
+
+    plt.tight_layout()
+    
+    if safe:
+        fig.savefig( filepath )
+        plt.close( fig )
+    else:
+        plt.show()
+    return
+
+
+def ANALYSE_file( filepath ):
+
+    data = dr.LOCAL_load_csv_data( filepath = filepath )
+    
+    ticker, date_format = dr.META_ANALYZE_local_filename( filename = filepath )
+
+    filepath = f"charts/single/{ticker}_{date_format}.png"
+
+    PLOT_complete_data( ticker = ticker, data = data, safe = True , filepath = filepath )
+
+
+
+def EXECUTE_fn_filelist( filelist, function ):
+    
+    for file in filelist:
+        function( file )
 
 def correlation_investigation( dataframe, threshold = 0.85 ):
     
@@ -59,20 +115,5 @@ def correlation_investigation( dataframe, threshold = 0.85 ):
     
     return correlation_matrix
         
-
-def __plot_tickers( data, ticker, period ):
     
     
-    chart_filename = f"charts/{ticker}.png"
-
-    # Plot and save the candlestick chart
-    mpf.plot(data, type='candle', style='yahoo', # 'charles'
-      title=f"{ticker} Stock Price - Last {period}",
-      ylabel='Price (USD)',
-      volume=True,
-       mav=(20, 50),  # Moving averages
-      figsize = (14,8),
-      figscale=1.5,
-      savefig=dict(fname=chart_filename, dpi=300),
-      tight_layout=True)
-    print(f"Saved candlestick chart for {ticker} to {chart_filename}")

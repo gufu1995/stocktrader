@@ -8,6 +8,8 @@ Created on Tue Sep 17 11:23:16 2024
 
 import pandas as pd
 import data_retreival as dr
+import analysis as az
+import os
 # import correlation_calculation as cc
 
 start_date = pd.to_datetime("2011-01-01 00:00:00")
@@ -37,7 +39,18 @@ stock_exchanges = [ "NYSE", "NASDAQ" ]
 # data = dr.DATA_merge_dataframes(dfs = [ returns_df, local_df ], threshold=1e-8)
 # dr.LOCAL_safe_to_csv( data = data, filepath = f"data/returns/returns_cpl_{data_format}.csv" )
 
-returns_df = dr.LOCAL_load_csv_data(filepath = f"data/returns/returns_cpl_{data_format}.csv" )
+commodities_files = "data/ticker/commodities/"
+commodities_files = [ commodities_files + f for f in os.listdir(commodities_files) if os.path.isfile(os.path.join(commodities_files, f))]
+commodities_filtered = [ _ for _ in commodities_files if _.split("_")[-1][ 0 ] == "M" ]
+# az.EXECUTE_fn_filelist( filelist = commodities_files, function = az.ANALYSE_file )
 
+stock_files = "data/ticker/stocks/"
+stock_files = [ stock_files + f for f in os.listdir(stock_files) if os.path.isfile(os.path.join(stock_files, f))]
+az.EXECUTE_fn_filelist( filelist = stock_files, function = az.ANALYSE_file )
 
+# returns_df = dr.LOCAL_load_csv_data(filepath = f"data/returns/returns_cpl_{data_format}.csv" )
+# ticker_data = dr.LOCAL_load_csv_data( filepath = "data/ticker/commodities/ALUM_M.csv" )
+# ticker_time_trimmed = dr.DATA_FILTER_complete_csv_data_time( data_series = ticker_data, 
+#                                                             start_date = start_date, end_date= end_date )
+# az.plot_complete_data(ticker = "ALUM", data = ticker_time_trimmed, safe = True, filepath = "charts/stocks/" )
 

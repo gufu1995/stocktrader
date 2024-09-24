@@ -56,10 +56,12 @@ def META_stock_exchange_tickers( ):
 def META_ANALYZE_local_filename( filename ):
     if "/" in filename:
         filename = filename.split("/")[ - 1 ]
-    filename = filename.split( "." )[ 0 ]
+    filename = filename.split( "." )[ : -1  ]
+    filename = ".".join( filename )
     filename = filename.split( "_" )
     ticker = filename[ 0 ]
     date_format = filename[ -1 ]
+    date_format = re.findall( r"[a-zA-Z]+", date_format )[ 0 ][ 0 ].upper( )
     
     return ticker, date_format 
 
@@ -165,18 +167,6 @@ def DL_fetch_single_ticker_data( ticker, period, interval ):
 def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period = "1y", 
                                interval = "1d", folder = "data/ticker/stocks/", interpolate = "linear",
                                fill_missing = True):
-    
-    # if len(end_date)==0:
-    #     end_date = pd.to_datetime( datetime.date.today( ) )
-    #     if "y" in period:
-    #         start_date = datetime.date.today() - datetime.timedelta( days = 365 + int( period[ : -1 ] ) )
-    #     elif "d" in period:
-    #         start_date = datetime.date.today() - datetime.timedelta( days = int( period[ : -1 ] ) )
-    #     elif "w" in period:
-    #         start_date = datetime.date.today() - datetime.timedelta( weeks = int( period[ : -1 ] ) )
-    #     else:
-    #         print( "Do not recognize the period" )
-    #     start_date = pd.to_datetime( start_date )
             
     collection_df = pd.DataFrame( )
     datetime_string = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -187,7 +177,7 @@ def DL_fetch_Yahoo_ticker_data( tickers, start_date, end_date, exchanges, period
     for ticker in tickers:
 
         ticker_df = DL_fetch_single_ticker_data( ticker = ticker, period = period, interval = interval )
-        # save ticker data to csv in ticker folder
+
         csv_ticker_filepath = folder + f"{ticker}_{period}_{interval}.csv"
         LOCAL_safe_to_csv(data = ticker_df, filepath = csv_ticker_filepath )
         
